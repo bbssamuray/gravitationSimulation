@@ -1,5 +1,5 @@
 ## Gravitation Simulation
-A simple simulation game.
+A simple simulation game made in Godot.
 
 You can create walls, spawn dynamic or static particles and watch how they interact.
 
