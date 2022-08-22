@@ -123,7 +123,7 @@ func _draw():
 	for x in variablePoints:
 		var tempVec = Vector2(variableSize,variableSize)
 		draw_texture_rect(sparkImage,Rect2(x.positionPixels-tempVec/2,tempVec),false,x.color*8/10)
-		draw_line(x.positionPixels,x.positionPixels+x.velocity*1000/60,Color(1,1,1,1),2) #Draw trajectory (for 60fps)
+		#draw_line(x.positionPixels,x.positionPixels+x.velocity*1000/60,Color(1,1,1,1),2) #Draw trajectory (for 60fps)
 		draw_polyline(x.trailPoints,x.color,trailWidth,true) #Draw trail
 		
 	for x in len(walls)/2:
