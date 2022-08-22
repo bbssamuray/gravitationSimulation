@@ -64,30 +64,7 @@ func _process(delta):
 		
 		x.velocity = x.velocity.limit_length(maxVelocity)
 		
-		var closestResult
-		
-		var intCount = 0 #intersection Count
-		
-		for w in len(walls)/2:
-			
-			#Bounce code
-
-			#Sometimes they go through the corners that connect the walls
-			#Sucks for them i guess
-			#todo: write a proper bounce function
-			
-			closestResult = getLineIntersection(x.position,x.position+x.velocity*delta,walls[w*2],walls[w*2+1])
-			if typeof(closestResult) == TYPE_VECTOR2:
-				intCount += 1
-				
-				var wallNormal = walls[w*2].direction_to(walls[w*2+1]).tangent()
-				x.velocity = x.velocity.bounce(wallNormal)
-				x.position = closestResult
-				x.position += x.velocity/100
-					
-					
-		if intCount == 0:
-			x.position += x.velocity*delta		
+		bouncePoint(x,-1,0,delta) #Also handles moving the point
 		
 		x.positionPixels = x.position * Vector2(screenX,screenY)
 		
@@ -102,7 +79,42 @@ func _process(delta):
 		
 	update() # calls the _draw function
 	
+func bouncePoint(pt:point,lastWall:int,recursionDepth,delta):
 	
+	#Still not perfect, but A LOT better than the last one i had
+	
+	if recursionDepth > 9:
+		pt.velocity = Vector2(0,0)
+		return
+	
+	var closestIntLoc #Vec2 of where the closest intersection occurs
+	var closestIntLength = 1000.0 #Length between the point and closest intersection
+	var closestIntWall #ID of the said intersection
+	
+	for w in len(walls)/2:
+		
+		if w == lastWall:
+			continue
+			
+		var intResult = getLineIntersection(pt.position,pt.position+pt.velocity*delta,walls[w*2],walls[w*2+1])
+		if typeof(intResult) == TYPE_VECTOR2:
+			
+			var distance = (pt.position - intResult).length()
+			if distance < closestIntLength:
+				closestIntLoc = intResult
+				closestIntLength = distance
+				closestIntWall = w
+				
+	if typeof(closestIntLoc) == TYPE_VECTOR2:
+		var wallNormal = walls[closestIntWall*2].direction_to(walls[closestIntWall*2+1]).tangent()
+		pt.velocity = pt.velocity.bounce(wallNormal) *95/100
+		pt.position = closestIntLoc
+		bouncePoint(pt,closestIntWall,recursionDepth+1,delta)
+
+	else:
+		pt.position += pt.velocity * delta
+		return
+
 func _draw():
 	for x in constantPoints:
 		var tempVec = Vector2(constSize,constSize)
@@ -111,6 +123,7 @@ func _draw():
 	for x in variablePoints:
 		var tempVec = Vector2(variableSize,variableSize)
 		draw_texture_rect(sparkImage,Rect2(x.positionPixels-tempVec/2,tempVec),false,x.color*8/10)
+		draw_line(x.positionPixels,x.positionPixels+x.velocity*1000/60,Color(1,1,1,1),2) #Draw trajectory (for 60fps)
 		draw_polyline(x.trailPoints,x.color,trailWidth,true) #Draw trail
 		
 	for x in len(walls)/2:
