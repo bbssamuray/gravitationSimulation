@@ -66,19 +66,13 @@ func _process(delta):
 		
 		bouncePoint(x,-1,0,delta) #Also handles moving the point
 		
-		x.positionPixels = x.position * Vector2(screenX,screenY)
-		
-		for i in trailLength:
-			#Move every member one index back
-			x.trailPoints[trailLength -1 -i] = x.trailPoints[trailLength -2 -i]
-			
-		x.trailPoints[0] = x.positionPixels
-		
 	if $fps.visible:
 		$fps.text = str(int(1/delta))
 		
 	update() # calls the _draw function
-	
+
+
+
 func bouncePoint(pt:point,lastWall:int,recursionDepth,delta):
 	
 	#Still not perfect, but A LOT better than the last one i had
@@ -109,11 +103,26 @@ func bouncePoint(pt:point,lastWall:int,recursionDepth,delta):
 		var wallNormal = walls[closestIntWall*2].direction_to(walls[closestIntWall*2+1]).tangent()
 		pt.velocity = pt.velocity.bounce(wallNormal) *95/100
 		pt.position = closestIntLoc
+		pt.positionPixels = pt.position * Vector2(screenX,screenY)
+		
+		#Add trail to the intersection location so it looks like the point went there
+		addToTrail(pt,pt.positionPixels)
 		bouncePoint(pt,closestIntWall,recursionDepth+1,delta)
-
+		
 	else:
 		pt.position += pt.velocity * delta
+		pt.positionPixels = pt.position * Vector2(screenX,screenY)
+		addToTrail(pt,pt.positionPixels)
 		return
+		
+func addToTrail(pt:point,segment:Vector2):
+	#segment indicates where the line segment would be in pixels
+	
+	for i in trailLength:
+		#Move every member one index back
+		pt.trailPoints[trailLength -1 -i] = pt.trailPoints[trailLength -2 -i]
+		
+	pt.trailPoints[0] = segment
 
 func _draw():
 	for x in constantPoints:
